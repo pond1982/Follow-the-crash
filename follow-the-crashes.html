@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Follow the crashes — Bangkok road safety clusters</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   FOLLOW THE CRASHES — editorial redesign
+   -------------------------------------------------------------------------
+   Direction:  quiet broadsheet. Rest of World / Bloomberg Graphics register.
+   Script pair: IBM Plex Sans + IBM Plex Sans Thai (matched metrics).
+   Two weights only: 400 regular, 500 medium. No bolds.
+   Serif (Plex Serif) used ONLY for the masthead lockup and pull numbers.
+   ========================================================================= */
+
+/* -------- Color tokens (dark only) ---------------------------------------- */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg:              #14130f;
+  --surface:         #1c1a15;
+  --surface-raised:  #221f19;
+  --surface-sunken:  #0e0d0a;
+
+  /* Ink — three levels, all ≥ 4.5:1 on --bg */
+  --ink:             #efeadd;   /* 14.9:1 */
+  --ink-subtle:      #b6b0a1;   /*  7.8:1 */
+  --ink-faint:       #827c6e;   /*  4.6:1 */
+
+  /* Rules */
+  --rule:            #2c2922;
+  --rule-strong:     #4a4639;
+
+  /* Semantic */
+  --accent:          #7fbac2;   /* 7.2:1 */
+  --accent-ink:      #b9e0e4;
+  --danger:          #e89292;   /* 7.9:1 */
+  --warning:         #e6b56a;   /* 8.2:1 */
+  --success:         #8fc29a;   /* 7.4:1 */
+
+  /* Severity */
+  --sev-fatal-fill:  #e89292;
+  --sev-fatal-ink:   #f4bdbd;
+  --sev-major-fill:  #e6b56a;
+  --sev-major-ink:   #f0cf96;
+  --sev-minor-fill:  #8fb1c6;
+  --sev-minor-ink:   #b9d0dd;
+
+  /* Badge tints */
+  --tint-live:       #1a2a1f;
+  --tint-live-ink:   #9bc9a4;
+  --tint-sample:     #2a2212;
+  --tint-sample-ink: #e6b56a;
+  --tint-err:        #2a1616;
+  --tint-err-ink:    #e89292;
+
+  /* Motion */
+  --t-fast: 120ms;
+  --t-med:  220ms;
+  --ease:   cubic-bezier(.2,.6,.2,1);
+
+  /* Typography */
+  --sans:    "IBM Plex Sans", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --sans-th: "IBM Plex Sans Thai", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --serif:   "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --mono:    "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  /* Spacing — 4pt grid */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+}
+
+/* -------- Reset ----------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  font-feature-settings: "kern", "liga", "calt";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+:lang(th), [lang="th"] { font-family: var(--sans-th); line-height: 1.65; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+a:hover { color: var(--ink); }
+
+code {
+  font-family: var(--mono); font-size: 0.88em;
+  background: var(--surface-sunken); padding: 1px 5px; border-radius: 3px;
+}
+
+/* Focus — consistent everywhere */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* -------- Page frame ------------------------------------------------------ */
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--s-7) var(--s-6) var(--s-8);
+}
+@media (max-width: 900px) { .wrap { padding: var(--s-6) var(--s-5) var(--s-7); } }
+@media (max-width: 600px) { .wrap { padding: var(--s-5) var(--s-4) var(--s-6); } }
+
+/* -------- Masthead -------------------------------------------------------- */
+.masthead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-5);
+  align-items: end;
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s-6);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.eyebrow::before {
+  content: "";
+  width: 18px; height: 1px;
+  background: var(--ink-faint);
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4.2vw, 48px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--s-3);
+  color: var(--ink);
+}
+h1 .and { font-style: italic; color: var(--ink-subtle); font-weight: 400; }
+
+.deck {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-subtle);
+  margin: 0;
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+.deck .th {
+  display: block;
+  font-family: var(--sans-th);
+  font-size: 15px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+
+.masthead-right {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  line-height: 1.6;
+}
+.masthead-right .src { display: block; }
+.masthead-right a { color: var(--ink-subtle); border-bottom-color: var(--rule); }
+.masthead-right a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+@media (max-width: 720px) {
+  .masthead { grid-template-columns: 1fr; align-items: start; }
+  .masthead-right { text-align: left; }
+}
+
+/* -------- Status badge ---------------------------------------------------- */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px 3px 6px;
+  border-radius: 2px;
+  margin-left: 10px;
+  vertical-align: 0.28em;
+  white-space: nowrap;
+}
+.status::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+}
+.status.live    { background: var(--tint-live);   color: var(--tint-live-ink); }
+.status.sample  { background: var(--tint-sample); color: var(--tint-sample-ink); }
+.status.err     { background: var(--tint-err);    color: var(--tint-err-ink); }
+.status.live::before { animation: pulse 2.4s var(--ease) infinite; }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
+@media (prefers-reduced-motion: reduce) { .status.live::before { animation: none; } }
+
+/* -------- Stat strip ------------------------------------------------------ */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin-bottom: var(--s-6);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.mc {
+  padding: var(--s-4) var(--s-5) var(--s-4) 0;
+  border-right: 1px solid var(--rule);
+  position: relative;
+}
+.mc:last-child { border-right: none; padding-right: 0; }
+.mc + .mc { padding-left: var(--s-5); }
+
+.ml {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--s-2);
+}
+.mv {
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.mv.is-danger { color: var(--danger); }
+.mv.is-compact {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .mc { padding: var(--s-4) var(--s-4) var(--s-4) 0; }
+  .mc + .mc { padding-left: var(--s-4); }
+  .mc:nth-child(2) { border-right: none; padding-right: 0; }
+  .mc:nth-child(3) { border-left: 1px solid var(--rule); padding-left: var(--s-4); }
+  .mc:nth-child(1), .mc:nth-child(2) { border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 520px) {
+  .stats { grid-template-columns: 1fr; }
+  .mc, .mc + .mc {
+    padding: var(--s-3) 0;
+    border-right: none !important;
+    border-left: none !important;
+    border-bottom: 1px solid var(--rule);
+  }
+  .mc:last-child { border-bottom: none; }
+  .mv { font-size: 30px; }
+}
+
+/* -------- Main grid ------------------------------------------------------- */
+.main {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 280px;
+  gap: var(--s-6);
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 180px minmax(0, 1fr) 240px; gap: var(--s-5); }
+}
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+    gap: var(--s-6);
+  }
+  .col-filter { order: 2; }
+  .col-map    { order: 1; }
+  .col-side   { order: 3; }
+}
+
+/* -------- Section labels (shared) ---------------------------------------- */
+.flabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin: 0 0 var(--s-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* -------- Filter sidebar -------------------------------------------------- */
+.col-filter .group { margin-bottom: var(--s-5); }
+.col-filter .group:last-child { margin-bottom: 0; }
+
+.mr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  cursor: pointer;
+  user-select: none;
+  padding: 5px 0;
+  color: var(--ink-subtle);
+  transition: color var(--t-fast) var(--ease);
+}
+.mr:hover { color: var(--ink); }
+.mr input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: var(--surface);
+  flex-shrink: 0;
+  display: grid; place-content: center;
+  cursor: pointer;
+  margin: 0;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.mr input[type="checkbox"]:checked {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.mr input[type="checkbox"]:checked::after {
+  content: "";
+  width: 8px; height: 4px;
+  border-left: 1.5px solid var(--bg);
+  border-bottom: 1.5px solid var(--bg);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.ms {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: -2px;
+}
+
+/* Range */
+.range-wrap { padding: 0 2px; }
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px; background: var(--rule); border-radius: 1px;
+}
+input[type="range"]::-moz-range-track {
+  height: 2px; background: var(--rule); border-radius: 1px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--ink); border: 2px solid var(--bg);
+  margin-top: -6px;
+  box-shadow: 0 0 0 1px var(--ink);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--ink); border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.range-scale {
+  display: flex; justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.range-scale strong { color: var(--ink); font-weight: 500; }
+
+/* Search */
+input[type="text"] {
+  width: 100%;
+  padding: 9px 12px 9px 30px;
+  font: 400 13.5px var(--sans);
+  color: var(--ink);
+  background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%237d7970' stroke-width='1.2'><circle cx='5' cy='5' r='3.5'/><path d='M7.5 7.5L10 10'/></svg>") no-repeat 10px center;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  transition: border-color var(--t-fast), background-color var(--t-fast);
+}
+input[type="text"]::placeholder { color: var(--ink-faint); }
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+/* -------- Map ------------------------------------------------------------- */
+.col-map { min-width: 0; }
+.map-frame {
+  position: relative;
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: var(--s-4);
+}
+svg#map {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 600px;
+  background: var(--surface-sunken);
+  border-radius: 1px;
+}
+.map-caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-5);
+  align-items: center;
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+.map-caption .swatch {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.map-caption .swatch::before {
+  content: "";
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c, var(--ink-faint));
+}
+.map-caption .size-legend {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-left: auto;
+}
+.map-caption .size-legend .d1 { width: 5px; height: 5px; background: var(--ink-faint); border-radius: 50%; display: inline-block; }
+.map-caption .size-legend .d2 { width: 9px; height: 9px; background: var(--ink-faint); border-radius: 50%; display: inline-block; }
+.map-caption .size-legend .d3 { width: 13px; height: 13px; background: var(--ink-faint); border-radius: 50%; display: inline-block; }
+
+/* Dots */
+circle.ct {
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease), stroke-width var(--t-fast);
+  transform-origin: center;
+  transform-box: fill-box;
+}
+circle.ct:hover { transform: scale(1.22); }
+circle.ct.sel { stroke-width: 2 !important; }
+circle.dd { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  circle.ct:hover { transform: none; }
+}
+
+/* -------- Leaderboard / side panel --------------------------------------- */
+.col-side { min-height: 320px; }
+
+.lb-list {
+  border-top: 1px solid var(--rule);
+}
+.lbr {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: var(--s-3);
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  align-items: baseline;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.lbr:hover { background: var(--surface-sunken); }
+.lbr-rank {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.lbn {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.lbn .lbn-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 1px;
+  font-family: var(--sans);
+}
+.lbv {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1;
+}
+.lbv .dagger {
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-left: 2px;
+  font-family: var(--sans);
+  vertical-align: 0.15em;
+}
+
+.side-note {
+  margin: var(--s-3) 0 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.side-empty {
+  padding: var(--s-4) 0;
+  font-size: 13px;
+  color: var(--ink-subtle);
+}
+
+/* -------- Detail panel --------------------------------------------------- */
+.detail {
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: var(--s-4);
+  margin-bottom: var(--s-3);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  margin-bottom: var(--s-3);
+}
+.pill::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.detail-name {
+  font-family: var(--sans-th);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0 0 2px;
+  letter-spacing: -0.005em;
+}
+.detail-loc {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin: 0 0 var(--s-4);
+  text-transform: uppercase;
+}
+.detail-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+.ds-num {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink);
+}
+.ds-num.is-danger { color: var(--danger); }
+.ds-lbl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+
+.meta-rows { margin-top: var(--s-4); }
+.meta-row {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--rule);
+  align-items: baseline;
+}
+.meta-row:last-child { border-bottom: 1px solid var(--rule); }
+.meta-k {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.meta-v {
+  font-size: 13px;
+  color: var(--ink);
+}
+.meta-v .th { color: var(--ink-subtle); }
+
+/* Buttons */
+button {
+  font: 400 13px var(--sans);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+button:hover { background: var(--surface-sunken); border-color: var(--ink-subtle); }
+button:active { transform: translateY(0.5px); }
+
+button.bk {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: var(--s-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+button.bk:hover { color: var(--ink); background: none; }
+button.bk::before { content: "←"; font-family: var(--sans); }
+
+button.primary {
+  background: var(--ink); color: var(--bg);
+  border-color: var(--ink);
+}
+button.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+
+/* -------- Footer --------------------------------------------------------- */
+.foot {
+  margin-top: var(--s-8);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-4);
+  align-items: start;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  line-height: 1.7;
+}
+.foot p { margin: 0; max-width: 58ch; }
+.foot a { color: var(--ink-subtle); border-bottom-color: var(--rule); }
+.foot a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.foot .colophon { text-align: right; }
+.foot .colophon .sig {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-subtle);
+  display: block;
+  margin-bottom: 2px;
+}
+@media (max-width: 720px) {
+  .foot { grid-template-columns: 1fr; }
+  .foot .colophon { text-align: left; }
+}
+
+/* -------- Motion respect ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Summary: interactive map of Bangkok's 100 worst road-accident clusters, showing deaths, injuries, and district context. Data sourced from BMA City Data, ThaiRSC, and iTIC.</h2>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Bangkok · Road safety · <span lang="th">ความปลอดภัยบนท้องถนน</span></p>
+      <h1>Follow <span class="and">the</span> crashes</h1>
+      <p class="deck">
+        One hundred of the city's deadliest road intersections and stretches, drawn from municipal risk data. Each circle marks a cluster where people died or were hurt this year.
+        <span class="th" lang="th">จุดเสี่ยงอุบัติเหตุบนถนนในกรุงเทพฯ หนึ่งร้อยแห่ง — เรียบเรียงจากข้อมูลของ กทม.</span>
+      </p>
+    </div>
+    <div class="masthead-right">
+      <span id="status" class="status sample">sample data</span>
+      <span class="src">SOURCE · <a href="https://data.bangkok.go.th/dataset/100-risk-map" target="_blank" rel="noopener">BMA City Data</a></span>
+      <span class="src">VIA · ThaiRSC / iTIC</span>
+      <span class="src">LAST UPDATED · 18 APR 2026</span>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Key figures">
+    <div class="mc"><div class="ml">Clusters shown</div><div class="mv" id="m-count">—</div></div>
+    <div class="mc"><div class="ml">Total deaths</div><div class="mv is-danger" id="m-deaths">—</div></div>
+    <div class="mc"><div class="ml">Total injuries</div><div class="mv" id="m-inj">—</div></div>
+    <div class="mc"><div class="ml">Worst district</div><div class="mv is-compact" id="m-worst">—</div></div>
+  </section>
+
+  <div class="main">
+
+    <aside class="col-filter" aria-label="Filters">
+      <div class="group">
+        <div class="flabel">Severity</div>
+        <div id="sev-filt"></div>
+      </div>
+
+      <div class="group">
+        <div class="flabel">Minimum deaths</div>
+        <div class="range-wrap">
+          <input type="range" id="dmin" min="0" max="10" value="0" step="1" aria-label="Minimum deaths" />
+          <div class="range-scale">
+            <span><strong id="dmin-v">0</strong>+ deaths</span>
+            <span>10</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="flabel">Accident type</div>
+        <div id="type-filt"></div>
+      </div>
+
+      <div class="group">
+        <div class="flabel">Search</div>
+        <input type="text" id="kw" placeholder="road, district…" aria-label="Search" />
+      </div>
+    </aside>
+
+    <div class="col-map">
+      <div class="map-frame">
+        <svg id="map" viewBox="0 0 640 500" role="img" aria-label="Map of Bangkok accident clusters">
+          <g id="district-outlines"></g>
+          <g id="district-dots"></g>
+          <g id="crash-dots"></g>
+        </svg>
+      </div>
+      <div class="map-caption">
+        <span class="swatch" style="--c: var(--ink-faint); opacity: 0.8">District boundary</span>
+        <span class="swatch" style="--c: var(--sev-fatal-fill)">Fatal</span>
+        <span class="swatch" style="--c: var(--sev-major-fill)">Major</span>
+        <span class="swatch" style="--c: var(--sev-minor-fill)">Injury only</span>
+        <span class="size-legend">
+          <span class="d1"></span><span class="d2"></span><span class="d3"></span>
+          &nbsp;casualties
+        </span>
+      </div>
+    </div>
+
+    <aside class="col-side" id="side" aria-label="Leaderboard and details"></aside>
+
+  </div>
+
+  <footer class="foot">
+    <p>
+      A template for exploring Thai public datasets, one story at a time. Data model mirrors the BMA 100-cluster risk map. To go live, see the <code>LIVE_CONFIG</code> block in source and set <code>enabled&nbsp;=&nbsp;true</code>. Methodology: severity is bucketed by fatality count (fatal&nbsp;≥5, major&nbsp;2–4, minor&nbsp;0–1); casualty radius encodes <code>√(d·3&nbsp;+&nbsp;i)</code>.
+    </p>
+    <div class="colophon">
+      <span class="sig">Follow the Crashes</span>
+      № 01 · Bangkok · 2026
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   Same logic as prototype. Only visual-tier changes: swatch colors now
+   pull from CSS vars; leaderboard row adds rank + two-line name; detail
+   renders through new markup. No API/data-shape changes.
+   ========================================================================== */
+
+const LIVE_CONFIG = {
+  enabled:    false,
+  endpoint:   "https://data.bangkok.go.th/th/api/3/action/datastore_search",
+  resourceId: "PUT_RESOURCE_UUID_HERE",
+  limit:      1000,
+  fieldMap: {
+    name:     ["location", "name", "ชื่อสถานที่", "road_name"],
+    district: ["district", "county", "เขต", "area"],
+    lat:      ["y", "lat", "latitude"],
+    lng:      ["x", "lng", "longitude", "lon"],
+    deaths:   ["deaths", "fatal", "ผู้เสียชีวิต", "death"],
+    injuries: ["injuries", "injured", "ผู้บาดเจ็บ", "injure"],
+    year:     ["year", "ปี"],
+    road:     ["road", "ถนน", "road_name"],
+    type:     ["accident_type", "type", "ประเภท"]
+  }
+};
+
+function cssvar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function SEV_COLORS() {
+  return {
+    1: { t: "Fatal",        th: "5+ deaths", f: cssvar("--sev-fatal-fill"), s: cssvar("--sev-fatal-ink"), w: cssvar("--sev-fatal-ink") },
+    2: { t: "Major",        th: "2–4 deaths", f: cssvar("--sev-major-fill"), s: cssvar("--sev-major-ink"), w: cssvar("--sev-major-ink") },
+    3: { t: "Injury only",  th: "0–1 deaths", f: cssvar("--sev-minor-fill"), s: cssvar("--sev-minor-ink"), w: cssvar("--sev-minor-ink") }
+  };
+}
+let SEV = SEV_COLORS();
+const sevOf = d => d >= 5 ? 1 : (d >= 2 ? 2 : 3);
+
+const TY = {
+  mb: {t:"Motorbike",  th:"มอเตอร์ไซค์"},
+  ve: {t:"Vehicle",    th:"รถยนต์"},
+  pd: {t:"Pedestrian", th:"คนเดินเท้า"},
+  tr: {t:"Truck/bus",  th:"รถบรรทุก/บัส"}
+};
+
+const DIST = [
+  [13.755,100.497],[13.772,100.513],[13.745,100.530],[13.777,100.576],[13.833,100.552],
+  [13.764,100.645],[13.730,100.524],[13.737,100.510],[13.706,100.584],[13.745,100.588],
+  [13.669,100.640],[13.697,100.606],[13.731,100.657],[13.725,100.698],[13.807,100.593],
+  [13.912,100.585],[13.884,100.572],[13.878,100.615],[13.923,100.651],[13.809,100.732],
+  [13.860,100.854],[13.866,100.697],[13.723,100.776],[13.766,100.688],[13.785,100.668],
+  [13.778,100.611],[13.826,100.673],[13.758,100.543],[13.779,100.540],[13.769,100.553],
+  [13.810,100.537],[13.720,100.486],[13.735,100.511],[13.723,100.478],[13.762,100.473],
+  [13.793,100.507],[13.715,100.434],[13.784,100.454],[13.778,100.373],[13.705,100.348],
+  [13.696,100.409],[13.651,100.395],[13.660,100.436],[13.625,100.506],[13.674,100.501],
+  [13.683,100.478],[13.711,100.528],[13.687,100.493],[13.696,100.544]
+];
+
+const SAMPLE = [
+  {n:"อโศก-สุขุมวิท",di:"วัฒนา",la:13.737,lo:100.560,d:8,i:72,y:2568,t:"mb",rd:"สุขุมวิท"},
+  {n:"แยกราชประสงค์",di:"ปทุมวัน",la:13.746,lo:100.541,d:5,i:58,y:2568,t:"pd",rd:"ราชดำริ"},
+  {n:"อนุสาวรีย์ชัยสมรภูมิ",di:"ราชเทวี",la:13.765,lo:100.537,d:7,i:65,y:2568,t:"mb",rd:"พหลโยธิน"},
+  {n:"ทางด่วนบางนา",di:"บางนา",la:13.668,lo:100.638,d:6,i:45,y:2567,t:"ve",rd:"บางนา-ตราด"},
+  {n:"แยกพระราม 9",di:"ห้วยขวาง",la:13.752,lo:100.568,d:9,i:80,y:2568,t:"mb",rd:"พระราม 9"},
+  {n:"ประตูลาดพร้าว",di:"ลาดพร้าว",la:13.807,lo:100.593,d:5,i:40,y:2567,t:"mb",rd:"ลาดพร้าว"},
+  {n:"วิภาวดี-รังสิต",di:"จตุจักร",la:13.832,lo:100.558,d:11,i:95,y:2568,t:"mb",rd:"วิภาวดี"},
+  {n:"พระราม 2 กม.26",di:"บางขุนเทียน",la:13.598,lo:100.425,d:7,i:52,y:2568,t:"tr",rd:"พระราม 2"},
+  {n:"กาญจนาฯ เหนือ",di:"สายไหม",la:13.918,lo:100.650,d:6,i:48,y:2567,t:"ve",rd:"กาญจนาภิเษก"},
+  {n:"เพชรเกษม กม.12",di:"ภาษีเจริญ",la:13.710,lo:100.410,d:5,i:42,y:2568,t:"mb",rd:"เพชรเกษม"},
+  {n:"สีลม-นราธิวาส",di:"บางรัก",la:13.725,lo:100.524,d:3,i:38,y:2568,t:"pd",rd:"สีลม"},
+  {n:"สุขุมวิท-นานา",di:"วัฒนา",la:13.744,lo:100.554,d:4,i:51,y:2568,t:"mb",rd:"สุขุมวิท"},
+  {n:"หมอชิต",di:"จตุจักร",la:13.803,lo:100.552,d:4,i:36,y:2568,t:"mb",rd:"พหลโยธิน"},
+  {n:"เอกมัย-สุขุมวิท",di:"วัฒนา",la:13.730,lo:100.583,d:3,i:29,y:2567,t:"mb",rd:"สุขุมวิท"},
+  {n:"ทองหล่อ-สุขุมวิท",di:"วัฒนา",la:13.734,lo:100.578,d:3,i:31,y:2568,t:"pd",rd:"สุขุมวิท"},
+  {n:"ช่องนนทรี-สาทร",di:"สาทร",la:13.720,lo:100.535,d:2,i:28,y:2568,t:"mb",rd:"สาทร"},
+  {n:"คลองเตย-พระราม 4",di:"คลองเตย",la:13.706,lo:100.558,d:4,i:35,y:2568,t:"tr",rd:"พระราม 4"},
+  {n:"ดาวคะนอง",di:"ธนบุรี",la:13.688,lo:100.489,d:3,i:27,y:2567,t:"ve",rd:"เจริญกรุง"},
+  {n:"สำโรง",di:"บางนา",la:13.645,lo:100.628,d:3,i:24,y:2568,t:"mb",rd:"สุขุมวิท"},
+  {n:"แยกปิ่นเกล้า",di:"บางพลัด",la:13.775,lo:100.481,d:3,i:30,y:2567,t:"mb",rd:"บรมราชชนนี"},
+  {n:"เกษตร-นวมินทร์",di:"บึงกุ่ม",la:13.826,lo:100.600,d:2,i:22,y:2568,t:"mb",rd:"นวมินทร์"},
+  {n:"Fashion Island",di:"คันนายาว",la:13.820,lo:100.660,d:2,i:19,y:2568,t:"ve",rd:"รามอินทรา"},
+  {n:"แยกมีนบุรี",di:"มีนบุรี",la:13.812,lo:100.733,d:3,i:21,y:2567,t:"mb",rd:"สีหบุรานุกิจ"},
+  {n:"มอเตอร์เวย์ สุวรรณภูมิ",di:"ลาดกระบัง",la:13.721,lo:100.745,d:4,i:33,y:2568,t:"ve",rd:"มอเตอร์เวย์"},
+  {n:"ดอนเมือง",di:"ดอนเมือง",la:13.912,lo:100.583,d:3,i:25,y:2568,t:"ve",rd:"วิภาวดี"},
+  {n:"แยกหลักสี่",di:"หลักสี่",la:13.885,lo:100.572,d:2,i:18,y:2567,t:"mb",rd:"แจ้งวัฒนะ"},
+  {n:"ประชาอุทิศ",di:"ทุ่งครุ",la:13.627,lo:100.502,d:3,i:22,y:2568,t:"mb",rd:"ประชาอุทิศ"},
+  {n:"แยกรามคำแหง",di:"บางกะปิ",la:13.766,lo:100.644,d:3,i:26,y:2568,t:"pd",rd:"รามคำแหง"},
+  {n:"บางคอแหลม",di:"บางคอแหลม",la:13.689,lo:100.500,d:2,i:16,y:2567,t:"mb",rd:"เจริญกรุง"},
+  {n:"แยกรัชดา-ห้วยขวาง",di:"ห้วยขวาง",la:13.773,lo:100.573,d:3,i:24,y:2568,t:"mb",rd:"รัชดาภิเษก"},
+  {n:"แยกท่าพระ",di:"บางกอกใหญ่",la:13.722,lo:100.472,d:2,i:20,y:2568,t:"mb",rd:"เพชรเกษม"},
+  {n:"ใต้ทางด่วนอุรุพงษ์",di:"ราชเทวี",la:13.750,lo:100.523,d:2,i:20,y:2567,t:"pd",rd:"พระราม 6"},
+  {n:"ลาดกระบัง-มอเตอร์เวย์",di:"ลาดกระบัง",la:13.745,lo:100.790,d:4,i:30,y:2568,t:"tr",rd:"ลาดกระบัง"},
+  {n:"สะพานพระราม 3",di:"ยานนาวา",la:13.690,lo:100.533,d:2,i:19,y:2568,t:"ve",rd:"พระราม 3"},
+  {n:"ต่างระดับบางพลี",di:"ลาดกระบัง",la:13.715,lo:100.765,d:3,i:25,y:2568,t:"ve",rd:"บางนา-ตราด"},
+  {n:"ประตูน้ำ",di:"ราชเทวี",la:13.750,lo:100.538,d:2,i:22,y:2568,t:"pd",rd:"เพชรบุรี"},
+  {n:"ทวีวัฒนา-บรมฯ",di:"ทวีวัฒนา",la:13.775,lo:100.380,d:2,i:18,y:2568,t:"mb",rd:"บรมราชชนนี"},
+  {n:"หนองแขม-เพชรเกษม",di:"หนองแขม",la:13.705,lo:100.365,d:1,i:14,y:2567,t:"mb",rd:"เพชรเกษม"},
+  {n:"บางบอน-เอกชัย",di:"บางบอน",la:13.653,lo:100.400,d:1,i:13,y:2568,t:"tr",rd:"เอกชัย"},
+  {n:"แยกจอมทอง",di:"จอมทอง",la:13.682,lo:100.481,d:1,i:11,y:2568,t:"mb",rd:"พระราม 2"},
+  {n:"พระโขนง-สุขุมวิท 71",di:"พระโขนง",la:13.708,lo:100.599,d:2,i:21,y:2568,t:"mb",rd:"สุขุมวิท"},
+  {n:"แยกประชาสงเคราะห์",di:"ดินแดง",la:13.774,lo:100.550,d:2,i:23,y:2568,t:"mb",rd:"ดินแดง"},
+  {n:"แยกสวนหลวง",di:"สวนหลวง",la:13.730,lo:100.650,d:1,i:11,y:2568,t:"mb",rd:"พัฒนาการ"},
+  {n:"แยกบางเขน",di:"บางเขน",la:13.874,lo:100.593,d:1,i:14,y:2568,t:"mb",rd:"พหลโยธิน"},
+  {n:"แยกอรุณอมรินทร์",di:"บางกอกน้อย",la:13.759,lo:100.478,d:1,i:12,y:2568,t:"mb",rd:"อรุณอมรินทร์"},
+  {n:"วงเวียนใหญ่",di:"ธนบุรี",la:13.726,lo:100.497,d:1,i:15,y:2567,t:"mb",rd:"ลาดหญ้า"},
+  {n:"สะพานสมเด็จพระเจ้าตากสิน",di:"คลองสาน",la:13.720,lo:100.517,d:1,i:9,y:2567,t:"ve",rd:"กรุงธนบุรี"},
+  {n:"พญาไท-ราชเทวี",di:"พญาไท",la:13.762,lo:100.533,d:1,i:13,y:2568,t:"pd",rd:"พญาไท"},
+  {n:"ประชาราษฎร์-บางซื่อ",di:"บางซื่อ",la:13.803,lo:100.537,d:1,i:10,y:2567,t:"mb",rd:"ประชาราษฎร์"}
+];
+
+let D = SAMPLE.slice();
+const state = {
+  sevs:  new Set([1, 2, 3]),
+  dmin:  0,
+  types: new Set(["mb", "ve", "pd", "tr"]),
+  kw:    "",
+  sel:   null
+};
+const $  = s => document.querySelector(s);
+
+const xProj = lng => (lng - 100.32) * 1032.3;
+const yProj = lat => (13.95 - lat) * 1063.8;
+
+/* ---- Bangkok district geometry --------------------------------------------
+   Progressive enhancement: try to fetch real polygon boundaries first.
+   On success, render hairline strokes + faint fill and hide the centroid dots.
+   On failure (offline, CORS, fetch blocked), fall back to centroid dots so
+   the map still reads as a map.
+   Source: pcrete/gsvloader-demo · Creative Commons. Cached in localStorage.
+----------------------------------------------------------------------------- */
+const DISTRICTS_URL = "https://raw.githubusercontent.com/pcrete/gsvloader-demo/master/geojson/Bangkok-districts.geojson";
+const DISTRICTS_CACHE_KEY = "bkk-districts-geojson-v1";
+
+function renderCentroidDots() {
+  const dd = $("#district-dots");
+  dd.innerHTML = "";
+  DIST.forEach(([la, lo]) => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", xProj(lo).toFixed(1));
+    c.setAttribute("cy", yProj(la).toFixed(1));
+    c.setAttribute("r", 2);
+    c.setAttribute("fill", "currentColor");
+    c.setAttribute("fill-opacity", 0.28);
+    c.setAttribute("class", "dd");
+    c.style.color = cssvar("--ink-faint");
+    dd.appendChild(c);
+  });
+}
+
+function geomToPath(geom) {
+  const ringToPath = ring =>
+    ring.map((p, i) => (i === 0 ? "M" : "L") + xProj(p[0]).toFixed(1) + " " + yProj(p[1]).toFixed(1)).join(" ") + "Z";
+  const polyToPath = rings => rings.map(ringToPath).join(" ");
+  if (geom.type === "Polygon")      return polyToPath(geom.coordinates);
+  if (geom.type === "MultiPolygon") return geom.coordinates.map(polyToPath).join(" ");
+  return "";
+}
+
+async function loadDistricts() {
+  let geojson;
+  try {
+    const cached = localStorage.getItem(DISTRICTS_CACHE_KEY);
+    if (cached) geojson = JSON.parse(cached);
+  } catch {}
+  if (!geojson) {
+    try {
+      const res = await fetch(DISTRICTS_URL);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      geojson = await res.json();
+      try { localStorage.setItem(DISTRICTS_CACHE_KEY, JSON.stringify(geojson)); } catch {}
+    } catch (err) {
+      console.warn("District boundaries unavailable, using centroids:", err.message);
+      renderCentroidDots();
+      return;
+    }
+  }
+  const g = $("#district-outlines");
+  g.innerHTML = "";
+  (geojson.features || []).forEach(f => {
+    const d = geomToPath(f.geometry);
+    if (!d) return;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "var(--ink)");
+    path.setAttribute("fill-opacity", "0.04");
+    path.setAttribute("stroke", "var(--ink-faint)");
+    path.setAttribute("stroke-opacity", "0.55");
+    path.setAttribute("stroke-width", "0.6");
+    path.setAttribute("stroke-linejoin", "round");
+    path.setAttribute("class", "dp");
+    g.appendChild(path);
+  });
+  $("#district-dots").style.display = "none";
+}
+
+loadDistricts();
+
+function filter() {
+  return D.filter(c => {
+    const s = sevOf(c.d);
+    if (!state.sevs.has(s)) return false;
+    if (c.d < state.dmin) return false;
+    if (!state.types.has(c.t)) return false;
+    if (state.kw) {
+      const q = state.kw.toLowerCase();
+      if (!(c.n.toLowerCase().includes(q) || c.di.toLowerCase().includes(q) || (c.rd || "").toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+}
+
+function render() {
+  SEV = SEV_COLORS();
+  const items = filter();
+  $("#m-count").textContent  = items.length.toLocaleString();
+  $("#m-deaths").textContent = items.reduce((s, c) => s + c.d, 0).toLocaleString();
+  $("#m-inj").textContent    = items.reduce((s, c) => s + c.i, 0).toLocaleString();
+  const byDi = {};
+  items.forEach(c => { byDi[c.di] = (byDi[c.di] || 0) + c.d; });
+  const worst = Object.entries(byDi).sort((a, b) => b[1] - a[1])[0];
+  $("#m-worst").textContent = worst ? `${worst[0]} · ${worst[1]}†` : "—";
+
+  const g = $("#crash-dots");
+  g.innerHTML = "";
+  items.forEach(c => {
+    const sev = SEV[sevOf(c.d)];
+    const r = Math.max(3.5, Math.sqrt(c.d * 3 + c.i) * 0.95);
+    const ci = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    ci.setAttribute("cx", xProj(c.lo).toFixed(1));
+    ci.setAttribute("cy", yProj(c.la).toFixed(1));
+    ci.setAttribute("r", r.toFixed(1));
+    ci.setAttribute("fill", sev.f);
+    ci.setAttribute("fill-opacity", 0.72);
+    ci.setAttribute("stroke", sev.s);
+    ci.setAttribute("stroke-width", 0.6);
+    ci.setAttribute("class", "ct" + (state.sel === c ? " sel" : ""));
+    ci.addEventListener("click", e => { e.stopPropagation(); state.sel = c; render(); });
+    g.appendChild(ci);
+  });
+  $("#map").onclick = () => { if (state.sel) { state.sel = null; render(); } };
+
+  renderSide(items);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderSide(items) {
+  const side = $("#side");
+  if (state.sel) {
+    const c = state.sel;
+    const sev = SEV[sevOf(c.d)];
+    const ty  = TY[c.t] || { t: c.t || "Unknown", th: "" };
+    const tint = sev.f;
+    side.innerHTML =
+      '<button class="bk" id="back-btn">Back to leaderboard</button>' +
+      '<article class="detail">' +
+        '<span class="pill" style="background: color-mix(in oklab, ' + tint + ' 18%, transparent); color: ' + sev.w + ';">' +
+          esc(sev.t) + ' · ' + esc(ty.t) +
+        '</span>' +
+        '<h3 class="detail-name" lang="th">' + esc(c.n) + '</h3>' +
+        '<p class="detail-loc"><span lang="th">' + esc(c.di) + '</span> · FY ' + c.y + '</p>' +
+        '<div class="detail-stats">' +
+          '<div><div class="ds-num is-danger">' + c.d + '</div><div class="ds-lbl">Deaths</div></div>' +
+          '<div><div class="ds-num">' + c.i + '</div><div class="ds-lbl">Injuries</div></div>' +
+        '</div>' +
+        '<div class="meta-rows">' +
+          '<div class="meta-row"><div class="meta-k">Road</div><div class="meta-v" lang="th">' + esc(c.rd || "—") + '</div></div>' +
+          '<div class="meta-row"><div class="meta-k">Type</div><div class="meta-v">' + esc(ty.t) + (ty.th ? ' <span class="th" lang="th">· ' + esc(ty.th) + '</span>' : '') + '</div></div>' +
+        '</div>' +
+      '</article>';
+    side.querySelector('#back-btn').addEventListener('click', () => { state.sel = null; render(); });
+  } else {
+    const ranked = items.slice().sort((a, b) => (b.d * 5 + b.i) - (a.d * 5 + a.i)).slice(0, 8);
+    side.innerHTML =
+      '<div class="flabel">Most dangerous</div>' +
+      (ranked.length
+        ? '<div class="lb-list">' + ranked.map((c, i) =>
+            '<div class="lbr" data-idx="' + i + '">' +
+              '<div class="lbr-rank">' + String(i + 1).padStart(2, "0") + '</div>' +
+              '<div class="lbn" title="' + esc(c.n) + '">' +
+                '<span lang="th">' + esc(c.n) + '</span>' +
+                '<span class="lbn-sub" lang="th">' + esc(c.di) + '</span>' +
+              '</div>' +
+              '<div class="lbv">' + c.d + '<span class="dagger">†</span></div>' +
+            '</div>'
+          ).join('') + '</div>'
+        : '<p class="side-empty">No clusters match the current filters.</p>'
+      ) +
+      '<p class="side-note">† deaths · click a dot for details</p>';
+
+    // Wire leaderboard rows to select
+    side.querySelectorAll('.lbr').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = +el.dataset.idx;
+        state.sel = ranked[idx];
+        render();
+      });
+    });
+  }
+}
+
+const sf = $("#sev-filt");
+Object.entries({
+  1: { t: "Fatal",       th: "5+ deaths" },
+  2: { t: "Major",       th: "2–4 deaths" },
+  3: { t: "Injury only", th: "0–1 deaths" }
+}).forEach(([id, s]) => {
+  const row = document.createElement("label");
+  row.className = "mr";
+  row.innerHTML = '<input type="checkbox" checked data-s="' + id + '" />' +
+                  '<span class="ms" style="background: ' + cssvar("--sev-" + (id==="1"?"fatal":id==="2"?"major":"minor") + "-fill") + '"></span>' +
+                  s.t + ' <span style="color: var(--ink-faint); font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; margin-left: auto;">' + s.th + '</span>';
+  row.style.justifyContent = "flex-start";
+  row.querySelector("input").addEventListener("change", e => {
+    const v = +e.target.dataset.s;
+    if (e.target.checked) state.sevs.add(v); else state.sevs.delete(v);
+    render();
+  });
+  sf.appendChild(row);
+});
+
+const tf = $("#type-filt");
+Object.entries(TY).forEach(([id, ty]) => {
+  const row = document.createElement("label");
+  row.className = "mr";
+  row.innerHTML = '<input type="checkbox" checked data-t="' + id + '" />' +
+                  ty.t +
+                  ' <span lang="th" style="color: var(--ink-faint); margin-left: auto; font-size: 12px;">' + ty.th + '</span>';
+  row.querySelector("input").addEventListener("change", e => {
+    const v = e.target.dataset.t;
+    if (e.target.checked) state.types.add(v); else state.types.delete(v);
+    render();
+  });
+  tf.appendChild(row);
+});
+
+$("#dmin").addEventListener("input", e => {
+  state.dmin = +e.target.value;
+  $("#dmin-v").textContent = state.dmin;
+  render();
+});
+$("#kw").addEventListener("input", e => {
+  state.kw = e.target.value.trim();
+  state.sel = null;
+  render();
+});
+
+/* ---- live fetch (unchanged) ---- */
+function pick(row, aliases) { for (const k of aliases) { if (row[k] != null && row[k] !== "") return row[k]; } return null; }
+function inferType(row) {
+  const t = String(pick(row, LIVE_CONFIG.fieldMap.type) || "").toLowerCase();
+  if (/motor|bike|จักรยานยนต์|มอเตอร์/.test(t)) return "mb";
+  if (/ped|คนเดิน|foot/.test(t)) return "pd";
+  if (/truck|bus|รถบรรทุก|รถโดยสาร/.test(t)) return "tr";
+  return "ve";
+}
+function normalize(row) {
+  const fm = LIVE_CONFIG.fieldMap;
+  const la = parseFloat(pick(row, fm.lat));
+  const lo = parseFloat(pick(row, fm.lng));
+  const d  = parseInt(pick(row, fm.deaths) || 0, 10) || 0;
+  const i  = parseInt(pick(row, fm.injuries) || 0, 10) || 0;
+  return {
+    n:  String(pick(row, fm.name) || "—"),
+    di: String(pick(row, fm.district) || "—"),
+    la, lo, d, i,
+    y:  parseInt(pick(row, fm.year) || new Date().getFullYear() + 543, 10),
+    t:  inferType(row),
+    rd: String(pick(row, fm.road) || "")
+  };
+}
+async function tryLive() {
+  if (!LIVE_CONFIG.enabled) return;
+  const st = $("#status");
+  st.textContent = "loading…";
+  st.className = "status sample";
+  try {
+    const url = new URL(LIVE_CONFIG.endpoint);
+    url.searchParams.set("resource_id", LIVE_CONFIG.resourceId);
+    url.searchParams.set("limit", LIVE_CONFIG.limit);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json();
+    const rows = j?.result?.records;
+    if (!Array.isArray(rows) || !rows.length) throw new Error("No records");
+    const mapped = rows.map(normalize).filter(r =>
+      Number.isFinite(r.la) && Number.isFinite(r.lo) &&
+      r.la > 13.4 && r.la < 14.0 && r.lo > 100.3 && r.lo < 101.0
+    );
+    if (!mapped.length) throw new Error("No records with valid Bangkok coordinates");
+    D = mapped;
+    st.textContent = "live · " + mapped.length + " records";
+    st.className = "status live";
+    render();
+  } catch (err) {
+    st.textContent = "live fetch failed";
+    st.className = "status err";
+    st.title = err.message;
+    console.warn("BMA fetch failed:", err);
+  }
+}
+
+render();
+tryLive();
+</script>
+
+</body>
+</html>
